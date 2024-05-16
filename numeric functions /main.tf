@@ -15,52 +15,41 @@ variable "desired_disk_size" {
   default     = -100
 }
 
-# Local Variables
-locals {
-  # Using abs to get the absolute value of the desired disk size
-  abs_disk_size = abs(var.desired_disk_size)
-
-  # Using ceil to round up the desired CPU allocation
-  ceil_cpu = ceil(var.desired_cpu)
-
-  # Using floor to round down the desired CPU allocation
-  floor_cpu = floor(var.desired_cpu)
-
-  # Tags using the calculated values
-  tags = {
-    Name = "env0-numeric"
-    CPU_Ceiled   = tostring(local.ceil_cpu)
-    CPU_Floored  = tostring(local.floor_cpu)
-    Disk_AbsSize = tostring(local.abs_disk_size)
-  }
-}
-
 # Outputs for Verification
 output "abs_disk_size" {
-  value = local.abs_disk_size
+  value = abs(var.desired_disk_size)
 }
 
 output "ceil_cpu" {
-  value = local.ceil_cpu
+  value = ceil(var.desired_cpu)
 }
 
 output "floor_cpu" {
-  value = local.floor_cpu
+  value = floor(var.desired_cpu)
 }
 
 output "tags" {
-  value = local.tags
+  value = {
+    Name = "env0-numeric"
+    CPU_Ceiled   = tostring(ceil(var.desired_cpu))
+    CPU_Floored  = tostring(floor(var.desired_cpu))
+    Disk_AbsSize = tostring(abs(var.desired_disk_size))
+  }
 }
 
 # Example EC2 Instance Resource
 resource "aws_instance" "env0" {
-
-  ami           = "ami-09040d770ffe2224f" 
+  ami           = "ami-09040d770ffe2224f"
   instance_type = "t2.micro"
-  tags          = local.tags
+  tags = {
+    Name        = "env0-numeric"
+    CPU_Ceiled  = tostring(ceil(var.desired_cpu))
+    CPU_Floored = tostring(floor(var.desired_cpu))
+    Disk_AbsSize = tostring(abs(var.desired_disk_size))
+  }
 
   root_block_device {
     volume_type = "gp2"
-    volume_size = local.abs_disk_size
+    volume_size = abs(var.desired_disk_size)
   }
 }
